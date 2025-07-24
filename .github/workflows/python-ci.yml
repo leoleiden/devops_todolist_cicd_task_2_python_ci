@@ -1,0 +1,63 @@
+name: "Python CI by ${{ github.actor }} - Commit: ${{ github.sha }}"
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  python-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        [cite_start]python-version: '3.8' # Версія Python згідно з вимогами проекту (Django 4+ та файлом Dockerfile) [cite: 2]
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt # requirements.txt знаходиться в корені 
+        pip install flake8 coverage
+
+    - name: Run Tests
+      # Для запуску manage.py, нам потрібно встановити змінну середовища DJANGO_SETTINGS_MODULE
+      # та бути в директорії, де знаходиться manage.py (корінь репозиторію)
+      run: |
+        export DJANGO_SETTINGS_MODULE=todolist.settings
+        python manage.py test
+
+    - name: Generate Coverage Report
+      run: |
+        export DJANGO_SETTINGS_MODULE=todolist.settings
+        coverage run manage.py test
+
+    - name: Display Coverage Report
+      run: coverage report
+
+    - name: Check Code Style (flake8)
+      # Запускаємо flake8 для перевірки коду в директорії src та інших python файлів в корені
+      run: flake8 . src/
+      continue-on-error: true
+
+    - name: Check Code Complexity (flake8)
+      # Запускаємо flake8 для перевірки складності коду в директорії src та інших python файлів в корені
+      run: flake8 . src/ --max-complexity=10
+      continue-on-error: true
+
+    - name: Upload Python Code as Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-code
+        path: |
+          ./*.py # manage.py та інші файли python в корені 
+          ./requirements.txt # 
+          ./src/**/*.py # Всі python файли в директорії src
