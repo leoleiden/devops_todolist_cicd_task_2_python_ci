@@ -33,22 +33,22 @@ jobs:
     - name: Run Tests
       run: |
         export DJANGO_SETTINGS_MODULE=todolist.settings
-        python manage.py test
+        python src/manage.py test
 
     - name: Generate Coverage Report
       run: |
         export DJANGO_SETTINGS_MODULE=todolist.settings
-        coverage run manage.py test
+        coverage run src/manage.py test
 
     - name: Display Coverage Report
       run: coverage report
 
     - name: Check Code Style (flake8)
-      run: flake8 . src/
+      run: flake8 src/
       continue-on-error: true
 
     - name: Check Code Complexity (flake8)
-      run: flake8 . src/ --max-complexity=10
+      run: flake8 src/ --max-complexity=10
       continue-on-error: true
 
     - name: Upload Python Code as Artifact
@@ -56,6 +56,4 @@ jobs:
       with:
         name: python-code
         path: |
-          ./*.py
-          ./requirements.txt
           ./src/**/*.py
